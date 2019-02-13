@@ -1,4 +1,5 @@
 import React from "react";
+import { connect } from "react-redux";
 import TodoList from "../presentational/todoList";
 
 function getVisibleTodos(todoList, filter) {
@@ -12,31 +13,25 @@ function getVisibleTodos(todoList, filter) {
   }
 }
 
-class VisibleTodoList extends React.Component {
-  componentDidMount() {
-    this.unsubscriber = this.props.store.subscribe(() => {
-      this.forceUpdate();
-    });
-  }
+const mapStateToProps = ({ todoList, visibilityFilter }) => {
+  return { todos: getVisibleTodos(todoList, visibilityFilter) };
+};
 
-  componentWillUnmount() {
-    this.unsubscriber();
-  }
+const mapDispatchToProps = dispatch => {
+  return {
+    clickHandler: id => {
+      return () => {
+        dispatch({ type: "TOGGLE_TODO", id: id });
+      };
+    }
+  };
+};
 
-  render() {
-    let { todoList, visibilityFilter } = this.props.store.getState();
-    let visibleTodos = getVisibleTodos(todoList, visibilityFilter);
-    return (
-      <TodoList
-        todoList={visibleTodos}
-        todoClickHandler={id => {
-          return () => {
-            this.props.store.dispatch({ type: "TOGGLE_TODO", id: id });
-          };
-        }}
-      />
-    );
-  }
-}
+const VisibleTodoList = ({ todos, clickHandler }) => {
+  return <TodoList todoList={todos} todoClickHandler={clickHandler} />;
+};
 
-export default VisibleTodoList;
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(VisibleTodoList);
